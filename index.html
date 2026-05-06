@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Neo Bros</title>
+    <title>Super Neo Bros - Hardcore (Calm Edition)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #87CEEB; touch-action: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin: 0; overflow: hidden; background-color: #0f172a; touch-action: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         canvas { display: block; }
         .hidden { display: none !important; }
-        /* CRT overlay effect for that retro-modern vibe */
         .scanlines {
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
             background-size: 100% 4px;
@@ -21,200 +20,192 @@
 </head>
 <body class="text-white select-none">
 
-    <!-- Game Container -->
     <div id="game-container" class="relative w-full h-screen">
-        
-        <!-- Three.js Canvas will be injected here -->
-        
-        <!-- Scanlines Overlay -->
         <div class="scanlines absolute inset-0 z-10"></div>
 
-        <!-- HUD (Heads Up Display) -->
+        <!-- HUD -->
         <div id="hud" class="hidden absolute top-0 left-0 w-full p-4 z-20 flex justify-between items-start pointer-events-none drop-shadow-md">
             <div>
-                <h2 id="hud-name" class="text-xl font-bold uppercase text-yellow-400 tracking-wider">Player: ---</h2>
+                <h2 id="hud-name" class="text-xl font-bold uppercase text-red-500 tracking-wider">Player: ---</h2>
                 <p id="hud-score" class="text-3xl font-black mt-1">000000</p>
             </div>
             <div class="text-right">
-                <p class="text-sm font-bold text-gray-200">HIGH SCORE</p>
-                <p id="hud-highscore" class="text-xl font-bold">000000</p>
+                <p class="text-sm font-bold text-gray-400">HIGH SCORE</p>
+                <p id="hud-highscore" class="text-xl font-bold text-red-400">000000</p>
             </div>
         </div>
 
         <!-- Start Screen -->
-        <div id="start-screen" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
-            <h1 class="text-6xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500 tracking-tighter" style="-webkit-text-stroke: 1px white;">SUPER NEO BROS</h1>
-            <p class="text-gray-300 mb-4 font-mono">WASD / Arrows to Move & Jump</p>
+        <div id="start-screen" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm">
+            <h1 class="text-6xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-purple-600 tracking-tighter" style="-webkit-text-stroke: 1px rgba(255,255,255,0.2);">NEO BROS: KAIZO</h1>
+            <p class="text-red-400 mb-8 font-mono text-sm animate-pulse">Slower speed, same pain. WASD / Arrows to Move.</p>
             
-            <div class="w-full max-w-md text-center mb-6 min-h-[4rem] flex items-center justify-center">
-                <p id="lore-text" class="text-sm text-yellow-200 italic px-4 hidden drop-shadow-md"></p>
-            </div>
-
-            <div class="w-full max-w-xs flex flex-col gap-3">
-                <input type="text" id="player-name" placeholder="Enter your alias..." class="w-full px-4 py-3 rounded-lg bg-gray-900 border-2 border-yellow-500 text-white focus:outline-none focus:bg-gray-800 text-center font-bold shadow-inner" autocomplete="off" maxlength="12">
-                <button id="btn-lore" class="w-full py-3 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded-lg transition-colors text-sm border border-purple-500 shadow-[0_0_15px_rgba(147,51,234,0.5)]">✨ Summon AI Game Master</button>
-                <button id="start-btn" class="w-full py-4 bg-yellow-500 hover:bg-yellow-400 text-black font-black rounded-lg transition-transform active:scale-95 shadow-[0_4px_0_rgb(161,98,7)]">START GAME</button>
+            <div class="w-full max-w-sm flex flex-col gap-3">
+                <input type="text" id="player-name" placeholder="Enter your alias..." class="w-full px-4 py-3 rounded bg-gray-900 border border-red-500 text-white focus:outline-none focus:bg-gray-800 text-center font-bold" autocomplete="off" maxlength="12">
+                
+                <textarea id="level-prompt" placeholder="Describe a level theme for Gemini..." class="w-full px-4 py-2 rounded bg-gray-900 border border-purple-500 text-white focus:outline-none focus:bg-gray-800 text-center text-sm resize-none" rows="2"></textarea>
+                
+                <div class="flex gap-2">
+                    <button id="start-btn" class="w-1/2 py-3 bg-red-600 hover:bg-red-500 text-white font-black rounded transition-colors active:scale-95">CLASSIC DEATH</button>
+                    <button id="ai-start-btn" class="w-1/2 py-3 bg-purple-600 hover:bg-purple-500 text-white font-black rounded transition-colors active:scale-95">✨ AI LEVEL</button>
+                </div>
+                <p id="ai-loading" class="text-purple-300 text-sm font-bold text-center hidden animate-pulse">✨ AI is calculating your demise...</p>
             </div>
         </div>
 
         <!-- Game Over Screen -->
-        <div id="gameover-screen" class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center bg-red-900/90 backdrop-blur-md">
-            <h1 class="text-7xl font-black mb-4 text-white drop-shadow-[0_0_15px_rgba(0,0,0,0.8)]">WASTED</h1>
-            <p class="text-2xl mb-2 text-yellow-300 font-bold">Final Score: <span id="final-score">0</span></p>
-            <p class="text-lg text-gray-300 mb-6" id="highscore-msg"></p>
-            
-            <div class="w-full max-w-md text-center mb-8 flex flex-col items-center justify-center min-h-[5rem]">
-                <button id="btn-roast" class="px-6 py-2 bg-purple-700 text-white font-bold rounded-full hover:bg-purple-600 transition-colors text-sm border border-purple-400 shadow-[0_0_15px_rgba(147,51,234,0.5)] mb-3">✨ Ask AI Coach</button>
-                <p id="ai-roast-text" class="text-sm text-white italic px-4 hidden drop-shadow-md"></p>
+        <div id="gameover-screen" class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center bg-red-950/90 backdrop-blur-md">
+            <h1 class="text-7xl font-black mb-4 text-white drop-shadow-[0_0_15px_rgba(255,0,0,0.8)]">SKILL ISSUE</h1>
+            <p class="text-2xl mb-2 text-gray-300 font-bold">Final Score: <span id="final-score">0</span></p>
+            <p class="text-lg text-red-400 mb-4 font-mono" id="highscore-msg"></p>
+
+            <div class="max-w-md bg-black/60 p-4 rounded-lg border border-purple-500 mb-8 text-center min-h-[80px] flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.3)] w-full mx-4">
+                <p id="ai-commentator" class="text-purple-300 italic font-medium">✨ AI Coach is typing a roast...</p>
             </div>
 
-            <button id="restart-btn" class="px-8 py-3 bg-white text-red-900 font-black rounded-full hover:bg-gray-200 transition-transform hover:scale-105 active:scale-95 shadow-lg">TRY AGAIN</button>
+            <button id="restart-btn" class="px-8 py-3 bg-red-600 text-white font-black rounded-full hover:bg-red-500 transition-transform hover:scale-105 active:scale-95 shadow-lg">SUFFER AGAIN</button>
+        </div>
+
+        <!-- Win Screen -->
+        <div id="win-screen" class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center bg-green-950/90 backdrop-blur-md">
+            <h1 class="text-7xl font-black mb-4 text-white drop-shadow-[0_0_15px_rgba(0,255,0,0.8)]">FLUKE?</h1>
+            <p class="text-2xl mb-2 text-yellow-300 font-bold">Final Score: <span id="win-score">0</span></p>
+            
+            <div class="w-full max-w-md text-center mb-8 flex flex-col items-center justify-center min-h-[5rem]">
+                <button id="btn-praise" class="px-6 py-2 bg-purple-600 text-white font-bold rounded-full hover:bg-purple-500 transition-colors text-sm shadow-[0_0_15px_rgba(168,85,247,0.5)] mb-3">✨ Demand AI Praise</button>
+                <p id="ai-praise-text" class="text-sm text-purple-200 italic px-4 hidden drop-shadow-md font-mono"></p>
+            </div>
+
+            <button id="win-restart-btn" class="px-8 py-3 bg-white text-green-900 font-black rounded-full hover:bg-gray-200 transition-transform hover:scale-105 active:scale-95 shadow-lg">PROVE IT AGAIN</button>
         </div>
 
     </div>
 
     <script>
         /**
-         * ENGINE SETUP
-         * Kalo lo ngira nulis game engine itu gampang, lo salah. Tapi gue bikin sesimpel mungkin.
-         * Pake arsitektur dasar: Init -> Loop (Update + Render).
+         * ENGINE SETUP - ADJUSTED SPEED
+         * Speed dikurangi biar nggak kecepetan, gravitasi tetep berat biar menantang.
          */
         const Config = {
-            gravity: -0.015,
-            friction: 0.8,
-            moveSpeed: 0.15,
-            jumpForce: 0.35,
-            enemySpeed: 0.05
+            gravity: -0.022,
+            friction: 0.85,    // Sedikit lebih berat (kurang licin)
+            moveSpeed: 0.08,   // Kecepatan jalan dipotong setengah biar nggak "kecepetan"
+            jumpForce: 0.44,   // Ditambah dikit buat kompensasi speed rendah saat mau lompat jauh
+            enemySpeed: 0.06   // Musuh juga dilambatin biar balance
         };
 
         const State = {
-            status: 'menu', // menu, playing, gameover
+            status: 'menu', 
             playerName: 'Anon',
             score: 0,
-            highScore: 0, // In-memory. No localStorage bullshit here.
+            highScore: 0, 
             keys: { left: false, right: false, jump: false },
-            theme: { sky: '#87CEEB', ground: '#2e8b57' } // Added dynamic theme state
+            deathReason: 'unknown',
+            lastLevelData: null
         };
 
-        // UI Elements
         const DOM = {
             startScreen: document.getElementById('start-screen'),
             gameoverScreen: document.getElementById('gameover-screen'),
+            winScreen: document.getElementById('win-screen'),
             hud: document.getElementById('hud'),
             nameInput: document.getElementById('player-name'),
             startBtn: document.getElementById('start-btn'),
+            aiStartBtn: document.getElementById('ai-start-btn'),
             restartBtn: document.getElementById('restart-btn'),
+            winRestartBtn: document.getElementById('win-restart-btn'),
             hudName: document.getElementById('hud-name'),
             hudScore: document.getElementById('hud-score'),
             hudHighscore: document.getElementById('hud-highscore'),
             finalScore: document.getElementById('final-score'),
+            winScore: document.getElementById('win-score'),
             highscoreMsg: document.getElementById('highscore-msg'),
-            btnLore: document.getElementById('btn-lore'),
-            loreText: document.getElementById('lore-text'),
-            btnRoast: document.getElementById('btn-roast'),
-            aiRoastText: document.getElementById('ai-roast-text')
+            levelPrompt: document.getElementById('level-prompt'),
+            aiLoading: document.getElementById('ai-loading'),
+            aiCommentator: document.getElementById('ai-commentator'),
+            btnPraise: document.getElementById('btn-praise'),
+            aiPraiseText: document.getElementById('ai-praise-text')
         };
 
-        // Three.js Globals
         let scene, camera, renderer;
         let playerObj;
         let platforms = [];
         let enemies = [];
         let coins = [];
 
-        // --- GEMINI API INTEGRATION ✨ ---
-        const GeminiAPI = {
-            apiKey: "",
-            async call(payload, isJson = false) {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${this.apiKey}`;
-                let delay = 1000;
-                for (let i = 0; i <= 5; i++) {
-                    try {
-                        const response = await fetch(url, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        const data = await response.json();
-                        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (!text) throw new Error('No text returned');
-                        return isJson ? JSON.parse(text) : text;
-                    } catch (err) {
-                        if (i === 5) return null;
-                        await new Promise(r => setTimeout(r, delay));
-                        delay *= 2; // Exponential backoff: 1s, 2s, 4s, 8s, 16s
-                    }
-                }
-            },
-            async generateLoreAndTheme(playerName) {
-                const payload = {
-                    contents: [{ parts: [{ text: `Player name: ${playerName || 'Anon'}. Give me a short 2-sentence epic backstory and a matching color palette for a 2D platformer.` }] }],
-                    systemInstruction: { parts: [{ text: "You are a creative Game Master for a 2.5D retro platformer. Make it fun." }] },
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "OBJECT",
-                            properties: {
-                                lore: { type: "STRING" },
-                                skyColor: { type: "STRING", description: "Hex color code starting with #, e.g. #87CEEB" },
-                                groundColor: { type: "STRING", description: "Hex color code starting with #, e.g. #2e8b57" }
-                            }
-                        }
-                    }
-                };
-                return await this.call(payload, true);
-            },
-            async generateRoast(playerName, score) {
-                const payload = {
-                    contents: [{ parts: [{ text: `Player ${playerName || 'Anon'} just died. Final score: ${score}.` }] }],
-                    systemInstruction: { parts: [{ text: "You are a snarky, sarcastic esports coach. Write a funny, 1-sentence roast or praise. Be extremely brief." }] }
-                };
-                return await this.call(payload, false);
+        const apiKey = "";
+        
+        async function fetchGemini(prompt, schema = null, retries = 3) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+            if (schema) {
+                payload.generationConfig = { responseMimeType: "application/json", responseSchema: schema };
             }
-        };
-        // ---------------------------------
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const result = await response.json();
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    return schema ? JSON.parse(text) : text;
+                } catch (error) {
+                    if (i === retries - 1) return null;
+                    await new Promise(res => setTimeout(res, 1000 * Math.pow(2, i)));
+                }
+            }
+        }
+
+        async function generateAILevel() {
+            const userTheme = DOM.levelPrompt.value.trim() || "Punishing hardcore layout.";
+            const prompt = `Sadistic level designer. Theme: ${userTheme}. Tight jumps, tiny platforms. Range x=0 to 60. Start ground at x=0, goal at x=64. Return JSON only.`;
+            const schema = {
+                type: "OBJECT",
+                properties: {
+                    platforms: { type: "ARRAY", items: { type: "OBJECT", properties: { x: { type: "NUMBER" }, y: { type: "NUMBER" }, w: { type: "NUMBER" }, h: { type: "NUMBER" } } } },
+                    coins: { type: "ARRAY", items: { type: "OBJECT", properties: { x: { type: "NUMBER" }, y: { type: "NUMBER" } } } },
+                    enemies: { type: "ARRAY", items: { type: "OBJECT", properties: { x: { type: "NUMBER" }, y: { type: "NUMBER" }, range: { type: "NUMBER" } } } }
+                }
+            };
+            return await fetchGemini(prompt, schema);
+        }
+
+        async function triggerAIRoast() {
+            const prompt = `Toxic esports coach. ${State.playerName} died by ${State.deathReason}. Score ${State.score}. 1 sentence roast. Short. No emojis.`;
+            const comment = await fetchGemini(prompt);
+            DOM.aiCommentator.innerText = comment ? `"${comment}"` : '"Low APM energy."';
+        }
+
+        async function triggerAIPraise() {
+            const prompt = `Skeptical AI GM. ${State.playerName} won hardcore level. Score ${State.score}. 1 sentence backhanded compliment. Brief. No emojis.`;
+            const comment = await fetchGemini(prompt);
+            return comment || "Must have been a physics glitch.";
+        }
 
         initEngine();
         bindEvents();
 
         function initEngine() {
-            // 1. Scene
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(State.theme.sky); // Dynamic sky
-            // Simple fog to hide rendering edge
-            scene.fog = new THREE.Fog(State.theme.sky, 10, 50); 
+            scene.background = new THREE.Color(0x0f172a);
+            scene.fog = new THREE.FogExp2(0x0f172a, 0.05);
 
-            // 2. Camera (Perspective but locked rotation for 2.5D feel)
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 2, 15);
+            camera.position.set(0, 2, 16);
             camera.lookAt(0, 2, 0);
 
-            // 3. Renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             document.getElementById('game-container').appendChild(renderer.domElement);
 
-            // 4. Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
-
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
             dirLight.position.set(5, 10, 7);
             dirLight.castShadow = true;
-            dirLight.shadow.camera.left = -20;
-            dirLight.shadow.camera.right = 20;
-            dirLight.shadow.camera.top = 20;
-            dirLight.shadow.camera.bottom = -20;
             scene.add(dirLight);
 
-            // Start Render Loop
-            window.onload = () => {
-                requestAnimationFrame(gameLoop);
-            };
-
-            // Resize handler
+            window.onload = () => requestAnimationFrame(gameLoop);
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
@@ -222,451 +213,224 @@
             });
         }
 
-        function buildLevel() {
-            // Clean up old level
+        function buildLevel(levelData = null) {
             platforms.forEach(p => scene.remove(p.mesh));
             enemies.forEach(e => scene.remove(e.mesh));
             coins.forEach(c => scene.remove(c.mesh));
             if(playerObj && playerObj.mesh) scene.remove(playerObj.mesh);
-            
-            platforms = [];
-            enemies = [];
-            coins = [];
+            platforms = []; enemies = []; coins = [];
 
-            // Materials
-            const matGround = new THREE.MeshStandardMaterial({ color: new THREE.Color(State.theme.ground), roughness: 0.8 });
-            const matBlock = new THREE.MeshStandardMaterial({ color: 0x8b4513, roughness: 0.9 });
-            const matCoin = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 });
-            const matEnemy = new THREE.MeshStandardMaterial({ color: 0xff0000, roughness: 0.5 });
-            const matPlayer = new THREE.MeshStandardMaterial({ color: 0x0000ff, roughness: 0.4 });
+            const matGround = new THREE.MeshStandardMaterial({ color: 0x334155 });
+            const matBlock = new THREE.MeshStandardMaterial({ color: 0x94a3b8 });
+            const matCoin = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.8 });
+            const matEnemy = new THREE.MeshStandardMaterial({ color: 0xef4444 });
+            const matPlayer = new THREE.MeshStandardMaterial({ color: 0x3b82f6 });
+            const matGoal = new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x10b981, emissiveIntensity: 0.5 });
 
-            // Factory Helpers
             const createPlatform = (x, y, w, h, material) => {
-                const geo = new THREE.BoxGeometry(w, h, 2);
-                const mesh = new THREE.Mesh(geo, material);
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, 2), material);
                 mesh.position.set(x, y, 0);
-                mesh.receiveShadow = true;
-                mesh.castShadow = true;
+                mesh.receiveShadow = true; mesh.castShadow = true;
                 scene.add(mesh);
                 platforms.push({ x, y, w, h, mesh });
             };
 
             const createCoin = (x, y) => {
-                const geo = new THREE.TorusGeometry(0.4, 0.15, 8, 16);
-                const mesh = new THREE.Mesh(geo, matCoin);
-                mesh.position.set(x, y, 0);
-                mesh.castShadow = true;
+                const mesh = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.1, 8, 16), matCoin);
+                mesh.position.set(x, y, 0); mesh.castShadow = true;
                 scene.add(mesh);
-                coins.push({ x, y, w: 0.8, h: 0.8, mesh, collected: false });
+                coins.push({ x, y, w: 0.6, h: 0.6, mesh, collected: false });
             };
 
             const createEnemy = (x, y, patrolRange) => {
-                const geo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-                const mesh = new THREE.Mesh(geo, matEnemy);
-                mesh.position.set(x, y, 0);
-                mesh.castShadow = true;
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), matEnemy);
+                mesh.position.set(x, y, 0); mesh.castShadow = true;
                 scene.add(mesh);
-                enemies.push({ x, y, w: 0.8, h: 0.8, startX: x, range: patrolRange, dir: 1, mesh });
+                enemies.push({ x, y, w: 0.7, h: 0.7, startX: x, range: patrolRange || 1, dir: 1, mesh });
             };
 
-            // Layout (Hardcoded minimal level design cause proc-gen is overkill for this demo)
-            createPlatform(0, -2, 15, 2, matGround); // Start Area
-            createCoin(3, 0);
-            createCoin(5, 0);
-            
-            createPlatform(10, 0, 4, 1, matBlock); // Jump 1
-            createCoin(10, 1.5);
-            createEnemy(10, 1, 1.5);
+            if (levelData && levelData.platforms) {
+                levelData.platforms.forEach(p => createPlatform(p.x, p.y, p.w, p.h, matBlock));
+                if (levelData.coins) levelData.coins.forEach(c => createCoin(c.x, c.y));
+                if (levelData.enemies) levelData.enemies.forEach(e => createEnemy(e.x, e.y, e.range));
+                createPlatform(0, -2, 10, 2, matGround);
+                createPlatform(65, 2, 1, 12, matGoal); 
+            } else {
+                createPlatform(0, -2, 10, 2, matGround);
+                createPlatform(13, 0, 1.5, 1, matBlock);
+                createEnemy(13, 0.8, 0.2);
+                createPlatform(18, 2, 1, 1, matBlock);
+                createPlatform(24, 4, 1, 1, matBlock);
+                createCoin(24, 5.5);
+                createPlatform(32, -1, 6, 2, matGround);
+                createEnemy(30, 0.5, 2);
+                createPlatform(42, 1, 1, 1, matBlock);
+                createPlatform(48, 3, 1, 1, matBlock);
+                createPlatform(52, -2, 8, 2, matGround);
+                createPlatform(55, 3, 1, 12, matGoal);
+            }
 
-            createPlatform(16, 2, 4, 1, matBlock); // Jump 2
-            createCoin(15, 3.5);
-            createCoin(17, 3.5);
-
-            createPlatform(24, -1, 10, 2, matGround); // Middle Area
-            createEnemy(22, 0.5, 2);
-            createEnemy(26, 0.5, 2);
-            createCoin(24, 1);
-
-            createPlatform(32, 1, 3, 1, matBlock);
-            createPlatform(36, 3, 3, 1, matBlock);
-            createCoin(36, 4.5);
-
-            createPlatform(45, -2, 10, 2, matGround); // End Area
-            createCoin(43, 0);
-            createCoin(45, 0);
-            createCoin(47, 0);
-            // "Flagpole" structure
-            createPlatform(48, 2, 1, 8, matBlock);
-
-            // Init Player
-            const playerGeo = new THREE.BoxGeometry(0.9, 0.9, 0.9);
-            const pMesh = new THREE.Mesh(playerGeo, matPlayer);
-            pMesh.castShadow = true;
-            scene.add(pMesh);
-
-            playerObj = {
-                x: -5, y: 2, w: 0.9, h: 0.9,
-                vx: 0, vy: 0,
-                isGrounded: false,
-                mesh: pMesh,
-                isDead: false
-            };
+            const pMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), matPlayer);
+            pMesh.castShadow = true; scene.add(pMesh);
+            playerObj = { x: -2, y: 2, w: 0.8, h: 0.8, vx: 0, vy: 0, isGrounded: false, mesh: pMesh, isDead: false };
         }
 
         function bindEvents() {
-            // UI Events
-            DOM.startBtn.addEventListener('click', () => {
-                const name = DOM.nameInput.value.trim() || 'Player 1';
-                startGame(name);
+            DOM.startBtn.addEventListener('click', () => startGame(DOM.nameInput.value.trim() || 'Noob', null));
+            DOM.aiStartBtn.addEventListener('click', async () => {
+                const name = DOM.nameInput.value.trim() || 'Noob';
+                DOM.aiLoading.classList.remove('hidden');
+                DOM.startBtn.disabled = true; DOM.aiStartBtn.disabled = true;
+                const aiLevelData = await generateAILevel();
+                DOM.aiLoading.classList.add('hidden');
+                DOM.startBtn.disabled = false; DOM.aiStartBtn.disabled = false;
+                startGame(name, aiLevelData);
+            });
+            DOM.restartBtn.addEventListener('click', () => startGame(State.playerName, State.lastLevelData));
+            DOM.winRestartBtn.addEventListener('click', () => startGame(State.playerName, State.lastLevelData));
+            DOM.btnPraise.addEventListener('click', async () => {
+                DOM.btnPraise.innerText = "✨ Judging..."; DOM.btnPraise.disabled = true;
+                const praise = await triggerAIPraise();
+                DOM.btnPraise.innerText = "✨ Demand AI Praise"; DOM.btnPraise.disabled = false;
+                DOM.aiPraiseText.innerText = `"${praise}"`; DOM.aiPraiseText.classList.remove('hidden');
             });
 
-            // ✨ Gemini Feature: Generate Lore & Dynamic Theme
-            DOM.btnLore.addEventListener('click', async () => {
-                const name = DOM.nameInput.value.trim() || 'Anon';
-                DOM.btnLore.innerText = "✨ Summoning...";
-                DOM.btnLore.disabled = true;
-                
-                const result = await GeminiAPI.generateLoreAndTheme(name);
-                
-                DOM.btnLore.innerText = "✨ Summon AI Game Master";
-                DOM.btnLore.disabled = false;
-
-                if (result) {
-                    DOM.loreText.innerText = `"${result.lore}"`;
-                    DOM.loreText.classList.remove('hidden');
-                    
-                    // Apply dynamic theme
-                    if (result.skyColor && result.groundColor) {
-                        State.theme.sky = result.skyColor;
-                        State.theme.ground = result.groundColor;
-                        scene.background.set(State.theme.sky);
-                        scene.fog.color.set(State.theme.sky);
-                        document.body.style.backgroundColor = State.theme.sky;
-                    }
-                } else {
-                    DOM.loreText.innerText = "The Oracle is currently asleep. Try again later.";
-                    DOM.loreText.classList.remove('hidden');
-                }
-            });
-
-            // ✨ Gemini Feature: AI Coach Roast
-            DOM.btnRoast.addEventListener('click', async () => {
-                DOM.btnRoast.innerText = "✨ Analyzing gameplay...";
-                DOM.btnRoast.disabled = true;
-                DOM.aiRoastText.classList.add('hidden');
-
-                const roast = await GeminiAPI.generateRoast(State.playerName, State.score);
-                
-                DOM.btnRoast.innerText = "✨ Ask AI Coach";
-                DOM.btnRoast.disabled = false;
-
-                if (roast) {
-                    DOM.aiRoastText.innerText = `"${roast}" - AI Coach`;
-                    DOM.aiRoastText.classList.remove('hidden');
-                } else {
-                    DOM.aiRoastText.innerText = "AI Coach left the chat. Try again later.";
-                    DOM.aiRoastText.classList.remove('hidden');
-                }
-            });
-
-            DOM.restartBtn.addEventListener('click', () => {
-                startGame(State.playerName);
-            });
-
-            // Keyboard Controls
             window.addEventListener('keydown', (e) => {
                 if (State.status !== 'playing') return;
-                switch(e.code) {
-                    case 'KeyA': case 'ArrowLeft': State.keys.left = true; break;
-                    case 'KeyD': case 'ArrowRight': State.keys.right = true; break;
-                    case 'KeyW': case 'ArrowUp': case 'Space': 
-                        if (playerObj.isGrounded) State.keys.jump = true;
-                        break;
-                }
+                if (['KeyA', 'ArrowLeft'].includes(e.code)) State.keys.left = true;
+                if (['KeyD', 'ArrowRight'].includes(e.code)) State.keys.right = true;
+                if (['KeyW', 'ArrowUp', 'Space'].includes(e.code) && playerObj.isGrounded) State.keys.jump = true;
             });
-
             window.addEventListener('keyup', (e) => {
-                switch(e.code) {
-                    case 'KeyA': case 'ArrowLeft': State.keys.left = false; break;
-                    case 'KeyD': case 'ArrowRight': State.keys.right = false; break;
-                    case 'KeyW': case 'ArrowUp': case 'Space': State.keys.jump = false; break;
-                }
-            });
-
-            // Basic touch controls fallback (left half vs right half, tap upper to jump)
-            window.addEventListener('touchstart', (e) => {
-                if (State.status !== 'playing') return;
-                const touch = e.touches[0];
-                const w = window.innerWidth;
-                const h = window.innerHeight;
-                
-                if (touch.clientY < h / 2 && playerObj.isGrounded) {
-                    State.keys.jump = true; // Jump area
-                } else if (touch.clientX < w / 2) {
-                    State.keys.left = true;
-                } else {
-                    State.keys.right = true;
-                }
-            });
-
-            window.addEventListener('touchend', () => {
-                State.keys.left = false;
-                State.keys.right = false;
-                State.keys.jump = false;
+                if (['KeyA', 'ArrowLeft'].includes(e.code)) State.keys.left = false;
+                if (['KeyD', 'ArrowRight'].includes(e.code)) State.keys.right = false;
             });
         }
 
-        function startGame(name) {
-            State.playerName = name;
-            State.score = 0;
-            State.status = 'playing';
+        function startGame(name, levelData) {
+            State.playerName = name; State.score = 0; State.status = 'playing';
             State.keys = { left: false, right: false, jump: false };
-            
-            updateHUD();
-
-            // UI Transitions via Anime.js (Gue jamin lebih mulus dari CSS murni)
-            anime({
-                targets: DOM.startScreen,
-                opacity: 0,
-                duration: 500,
-                easing: 'easeInOutQuad',
-                complete: () => { DOM.startScreen.classList.add('hidden'); }
+            State.deathReason = 'unknown'; State.lastLevelData = levelData;
+            DOM.hudName.innerText = `Player: ${State.playerName}`;
+            DOM.hudScore.innerText = padScore(State.score);
+            DOM.hudHighscore.innerText = padScore(State.highScore);
+            [DOM.startScreen, DOM.gameoverScreen, DOM.winScreen].forEach(el => {
+                el.classList.add('hidden'); el.style.opacity = 1;
             });
-            
-            if(!DOM.gameoverScreen.classList.contains('hidden')) {
-                anime({
-                    targets: DOM.gameoverScreen,
-                    opacity: 0,
-                    duration: 500,
-                    easing: 'easeInOutQuad',
-                    complete: () => { DOM.gameoverScreen.classList.add('hidden'); }
-                });
-            }
-
             DOM.hud.classList.remove('hidden');
-            anime({
-                targets: DOM.hud,
-                opacity: [0, 1],
-                translateY: [-20, 0],
-                duration: 800,
-                easing: 'easeOutExpo'
-            });
-
-            buildLevel();
+            buildLevel(levelData);
         }
 
         function gameOver() {
             if (State.status === 'gameover') return;
-            State.status = 'gameover';
-            playerObj.isDead = true;
-
-            // Update Highscore
-            if (State.score > State.highScore) {
-                State.highScore = State.score;
-                DOM.highscoreMsg.innerText = "New High Score! GG.";
-                DOM.hudHighscore.innerText = padScore(State.highScore);
-            } else {
-                DOM.highscoreMsg.innerText = "Skill issue? Try again.";
-            }
-
+            State.status = 'gameover'; playerObj.isDead = true;
+            if (State.score > State.highScore) State.highScore = State.score;
             DOM.finalScore.innerText = State.score;
-
-            // Reset AI Coach UI
-            DOM.aiRoastText.classList.add('hidden');
-            DOM.aiRoastText.innerText = '';
-
-            // Death Animation (Mario style bounce and fall)
-            anime.timeline()
-            .add({
-                targets: playerObj.mesh.position,
-                y: playerObj.mesh.position.y + 3,
-                duration: 300,
-                easing: 'easeOutCubic'
-            })
-            .add({
-                targets: playerObj.mesh.position,
-                y: -15,
-                duration: 800,
-                easing: 'easeInCubic',
-                complete: () => {
-                    DOM.gameoverScreen.classList.remove('hidden');
-                    anime({
-                        targets: DOM.gameoverScreen,
-                        opacity: [0, 1],
-                        duration: 500,
-                        easing: 'linear'
-                    });
-                }
-            });
+            anime.timeline().add({ targets: playerObj.mesh.position, y: playerObj.mesh.position.y + 2, duration: 200 })
+            .add({ targets: playerObj.mesh.position, y: -15, duration: 600, complete: () => {
+                DOM.gameoverScreen.classList.remove('hidden'); triggerAIRoast();
+            }});
         }
 
-        function updateHUD() {
-            DOM.hudName.innerText = `Player: ${State.playerName}`;
-            DOM.hudScore.innerText = padScore(State.score);
+        function winGame() {
+            if (State.status === 'win') return;
+            State.status = 'win'; State.score += 5000;
+            if (State.score > State.highScore) State.highScore = State.score;
+            DOM.winScore.innerText = State.score;
+            anime({ targets: playerObj.mesh.position, y: -1, duration: 1000, easing: 'easeInBounce', complete: () => {
+                DOM.winScreen.classList.remove('hidden');
+            }});
         }
 
-        function padScore(num) {
-            return num.toString().padStart(6, '0');
-        }
-
-        // AABB Collision Logics
+        function padScore(num) { return num.toString().padStart(6, '0'); }
         function isIntersecting(r1, r2) {
-            return r1.x - r1.w/2 < r2.x + r2.w/2 &&
-                   r1.x + r1.w/2 > r2.x - r2.w/2 &&
-                   r1.y - r1.h/2 < r2.y + r2.h/2 &&
-                   r1.y + r1.h/2 > r2.y - r2.h/2;
+            return r1.x - r1.w/2 < r2.x + r2.w/2 && r1.x + r1.w/2 > r2.x - r2.w/2 && r1.y - r1.h/2 < r2.y + r2.h/2 && r1.y + r1.h/2 > r2.y - r2.h/2;
         }
 
         function updatePhysics() {
-            if (!playerObj || playerObj.isDead) return;
+            if (!playerObj || playerObj.isDead || State.status === 'win') return;
 
-            // 1. Horizontal Movement
             if (State.keys.left) playerObj.vx -= Config.moveSpeed;
             if (State.keys.right) playerObj.vx += Config.moveSpeed;
-            
-            playerObj.vx *= Config.friction; // damping
+            playerObj.vx *= Config.friction;
             
             // Limit max speed
-            if (playerObj.vx > 0.3) playerObj.vx = 0.3;
-            if (playerObj.vx < -0.3) playerObj.vx = -0.3;
+            const maxV = 0.25;
+            if (playerObj.vx > maxV) playerObj.vx = maxV;
+            if (playerObj.vx < -maxV) playerObj.vx = -maxV;
 
             playerObj.x += playerObj.vx;
-            
-            // Resolve X Collisions with platforms
             for (let p of platforms) {
                 if (isIntersecting(playerObj, p)) {
-                    if (playerObj.vx > 0) { // moving right, hit left edge
-                        playerObj.x = p.x - p.w/2 - playerObj.w/2;
-                    } else if (playerObj.vx < 0) { // moving left, hit right edge
-                        playerObj.x = p.x + p.w/2 + playerObj.w/2;
-                    }
+                    if (playerObj.vx > 0) playerObj.x = p.x - p.w/2 - playerObj.w/2;
+                    else if (playerObj.vx < 0) playerObj.x = p.x + p.w/2 + playerObj.w/2;
                     playerObj.vx = 0;
                 }
             }
             playerObj.mesh.position.x = playerObj.x;
 
-            // 2. Vertical Movement
             if (State.keys.jump && playerObj.isGrounded) {
                 playerObj.vy = Config.jumpForce;
-                State.keys.jump = false; // Require release to jump again
-                playerObj.isGrounded = false;
-                
-                // Squish and stretch animation for juice
-                anime({
-                    targets: playerObj.mesh.scale,
-                    y: [1.2, 1], x: [0.8, 1], z: [0.8, 1],
-                    duration: 300, easing: 'easeOutExpo'
-                });
+                State.keys.jump = false; playerObj.isGrounded = false;
             }
 
             playerObj.vy += Config.gravity;
             playerObj.y += playerObj.vy;
-            
             playerObj.isGrounded = false;
 
-            // Resolve Y Collisions with platforms
             for (let p of platforms) {
                 if (isIntersecting(playerObj, p)) {
-                    if (playerObj.vy < 0) { // Falling down, hit top
+                    if (playerObj.vy < 0) {
                         playerObj.y = p.y + p.h/2 + playerObj.h/2;
-                        playerObj.vy = 0;
-                        playerObj.isGrounded = true;
-                    } else if (playerObj.vy > 0) { // Jumping up, hit bottom
+                        playerObj.vy = 0; playerObj.isGrounded = true;
+                    } else if (playerObj.vy > 0) {
                         playerObj.y = p.y - p.h/2 - playerObj.h/2;
                         playerObj.vy = 0;
                     }
                 }
             }
             playerObj.mesh.position.y = playerObj.y;
-            
-            // Tilt character slightly based on velocity
-            playerObj.mesh.rotation.z = -playerObj.vx * 0.5;
+            playerObj.mesh.rotation.z = -playerObj.vx * 1.5;
 
-            // Death by falling
-            if (playerObj.y < -10) {
-                gameOver();
-            }
+            const goalX = State.lastLevelData ? 63 : 54;
+            if (playerObj.x >= goalX) winGame();
+            if (playerObj.y < -8) { State.deathReason = 'lack of spatial awareness'; gameOver(); }
         }
 
         function updateEntities() {
-            // Animate Coins
-            const time = Date.now() * 0.003;
+            if (State.status !== 'playing') return;
             for (let c of coins) {
-                if (c.collected) continue;
-                
-                c.mesh.rotation.y += 0.05; // Spin
-                c.mesh.position.y = c.y + Math.sin(time + c.x) * 0.2; // Hover
-
-                // Coin Collision
-                if (!playerObj.isDead && isIntersecting(playerObj, c)) {
-                    c.collected = true;
-                    State.score += 100;
-                    updateHUD();
-                    
-                    // The "Juice" when collecting
-                    anime({
-                        targets: c.mesh.scale,
-                        x: 0, y: 0, z: 0,
-                        duration: 400,
-                        easing: 'easeInBack'
-                    });
-                    anime({
-                        targets: c.mesh.position,
-                        y: c.mesh.position.y + 2,
-                        duration: 400,
-                        easing: 'easeOutQuad'
-                    });
+                if (!c.collected && isIntersecting(playerObj, c)) {
+                    c.collected = true; State.score += 250;
+                    DOM.hudScore.innerText = padScore(State.score);
+                    c.mesh.visible = false;
                 }
             }
-
-            // Update Enemies
             for (let e of enemies) {
                 e.x += Config.enemySpeed * e.dir;
-                
-                // Patrol logic
-                if (Math.abs(e.x - e.startX) > e.range) {
-                    e.dir *= -1; // Reverse
-                }
+                if (Math.abs(e.x - e.startX) > e.range) e.dir *= -1;
                 e.mesh.position.x = e.x;
-                e.mesh.rotation.y += 0.1 * e.dir;
-
-                // Enemy Collision
                 if (!playerObj.isDead && isIntersecting(playerObj, e)) {
-                    // Did player stomp the enemy? (Basic AABB resolution check)
-                    if (playerObj.vy < 0 && playerObj.y > e.y + e.h/2 - 0.2) {
-                        // Stomped!
-                        playerObj.vy = Config.jumpForce * 0.8; // Bounce off
-                        State.score += 200;
-                        updateHUD();
-                        e.x = 9999; // Move away instantly
-                        e.mesh.visible = false; // Hide
-                    } else {
-                        // Hit from side
-                        gameOver();
-                    }
+                    if (playerObj.vy < -0.05 && playerObj.y > e.y + e.h/3) {
+                        playerObj.vy = 0.3; State.score += 500;
+                        DOM.hudScore.innerText = padScore(State.score);
+                        e.x = 9999; e.mesh.visible = false;
+                    } else { State.deathReason = 'trying to make friends with a hostile cube'; gameOver(); }
                 }
             }
         }
 
         function updateCamera() {
-            if (!playerObj || playerObj.isDead) return;
-            // Smooth follow on X axis, fixed on Y to avoid nausea
-            const targetX = playerObj.x;
-            camera.position.x += (targetX - camera.position.x) * 0.1;
+            if (!playerObj) return;
+            camera.position.x += (playerObj.x - camera.position.x) * 0.1;
+            camera.position.y += ((playerObj.y > 2 ? playerObj.y : 2) - camera.position.y) * 0.05;
         }
 
-        // Main Game Loop
         function gameLoop() {
-            if (State.status === 'playing') {
-                updatePhysics();
-                updateEntities();
-                updateCamera();
-            }
-            
+            updatePhysics(); updateEntities(); updateCamera();
             renderer.render(scene, camera);
             requestAnimationFrame(gameLoop);
         }
-
     </script>
 </body>
 </html>
